@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Open a pre-filled message in iMessage.">
+  <title>Open in iMessage</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%23147a34'/%3E%3Cpath fill='white' d='M3 4.5h10v6H7.2L5 12.2V10.5H3z'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --line: #d2d2d7;
+      --pre: #f5f5f7;
+      --green: #147a34;
+      --green-active: #0e5c27;
+      --on-green: #ffffff;
+      --secondary-bg: #ffffff;
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #000000;
+        --card: #1c1c1e;
+        --text: #f5f5f7;
+        --muted: #a1a1a6;
+        --line: #3a3a3c;
+        --pre: #2c2c2e;
+        --green: #147a34;
+        --green-active: #0e5c27;
+        --on-green: #ffffff;
+        --secondary-bg: #2c2c2e;
+        --shadow: none;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    [hidden] { display: none !important; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      align-items: center;
+      align-items: safe center;
+      justify-items: center;
+      padding:
+        max(1.25rem, env(safe-area-inset-top))
+        max(1rem, env(safe-area-inset-right))
+        max(1.5rem, env(safe-area-inset-bottom))
+        max(1rem, env(safe-area-inset-left));
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 1.0625rem;
+      line-height: 1.4;
+    }
+
+    .card {
+      width: min(100%, 28rem);
+    }
+
+    .mark {
+      width: 3rem;
+      height: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      margin: 0.6rem 0 0;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 3.5rem;
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      font: inherit;
+      font-size: 1.125rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .btn.primary {
+      background: var(--green);
+      color: var(--on-green);
+    }
+
+    .btn.primary:visited { color: var(--on-green); }
+
+    .btn.primary:active { background: var(--green-active); }
+
+    .btn.secondary {
+      min-height: 3.25rem;
+      background: var(--secondary-bg);
+      color: var(--text);
+      border-color: var(--line);
+      font-weight: 600;
+    }
+
+    .btn.secondary:active { background: var(--pre); }
+
+    .btn:focus-visible {
+      outline: 3px solid var(--green);
+      outline-offset: 3px;
+    }
+
+    @media (hover: hover) {
+      .btn.primary:hover { background: var(--green-active); }
+      .btn.secondary:hover { background: var(--pre); }
+    }
+
+    .status {
+      min-height: 1.25rem;
+      margin: 0.75rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .preview { margin-top: 0.5rem; }
+
+    .kicker {
+      margin: 0 0 0.45rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    #message {
+      margin: 0;
+      padding: 0.9rem 1rem;
+      overflow: auto;
+      max-height: 40vh;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--pre);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .meta {
+      margin: 0.75rem 0 0;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .meta .kicker {
+      display: inline;
+      margin: 0;
+    }
+
+    .empty { margin-top: 1.25rem; }
+
+    .hint { margin: 0 0 0.75rem; }
+
+    .examples {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    code {
+      display: block;
+      padding: 0.7rem 0.8rem;
+      border-radius: 10px;
+      background: var(--pre);
+      border: 1px solid var(--line);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      overflow-wrap: anywhere;
+    }
+
+    @media (min-width: 640px) {
+      .card {
+        padding: 2rem 1.75rem 1.75rem;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+      }
+    }
+  </style>
+  <script>
+    (function () {
+      'use strict';
+
+      // Apple Messages uses "sms:<to>&body=" (no "//"). A literal "+" stays in the number.
+      function stripPrefix(value) {
+        var s = String(value || '');
+        if (s.charAt(0) === '#' || s.charAt(0) === '?') s = s.slice(1);
+        if (s.charAt(0) === '?') s = s.slice(1);
+        return s;
+      }
+
+      function parsePairs(value) {
+        var s = stripPrefix(value);
+        var map = Object.create(null);
+        if (!s) return map;
+        var parts = s.split('&');
+        for (var i = 0; i < parts.length; i++) {
+          var part = parts[i];
+          if (!part) continue;
+          var eq = part.indexOf('=');
+          var rawKey = eq === -1 ? part : part.slice(0, eq);
+          var rawVal = eq === -1 ? '' : part.slice(eq + 1);
+          var key;
+          try {
+            key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+          } catch (err) {
+            key = rawKey;
+          }
+          if (!Object.prototype.hasOwnProperty.call(map, key)) map[key] = rawVal;
+        }
+        return map;
+      }
+
+      var query = parsePairs(window.location.search);
+      var hash = parsePairs(window.location.hash);
+
+      function pickRaw(name) {
+        if (Object.prototype.hasOwnProperty.call(query, name) && query[name] !== '') return query[name];
+        if (Object.prototype.hasOwnProperty.call(hash, name) && hash[name] !== '') return hash[name];
+        return null;
+      }
+
+      function decodeBody(raw) {
+        var normalized = String(raw).replace(/\+/g, ' ');
+        try {
+          return decodeURIComponent(normalized);
+        } catch (err) {
+          return normalized;
+        }
+      }
+
+      function decodeTo(raw) {
+        var value;
+        try {
+          value = decodeURIComponent(String(raw));
+        } catch (err) {
+          value = String(raw);
+        }
+        return value.replace(/[\s\u0000-\u001F\u007F]/g, '');
+      }
+
+      function encodeBody(body) {
+        try {
+          return encodeURIComponent(body);
+        } catch (err) {
+          return encodeURIComponent(String(body).replace(/[\uD800-\uDFFF]/g, ''));
+        }
+      }
+
+      function buildSmsUri(recipient, text) {
+        var encoded = encodeBody(text);
+        if (recipient) return 'sms:' + recipient + '&body=' + encoded;
+        return 'sms:&body=' + encoded;
+      }
+
+      var bodyRaw = pickRaw('body');
+      var toRaw = pickRaw('to');
+      var body = bodyRaw === null ? '' : decodeBody(bodyRaw);
+      var to = toRaw === null ? '' : decodeTo(toRaw);
+      var smsUri = body ? buildSmsUri(to, body) : '';
+
+      function mount() {
+        var app = document.getElementById('app');
+        var lead = document.getElementById('lead');
+        var actions = document.getElementById('actions');
+        var open = document.getElementById('open');
+        var copy = document.getElementById('copy');
+        var status = document.getElementById('status');
+        var preview = document.getElementById('preview');
+        var message = document.getElementById('message');
+        var recipientRow = document.getElementById('recipient-row');
+        var recipient = document.getElementById('recipient');
+        var empty = document.getElementById('empty');
+        var resetTimer = 0;
+
+        if (smsUri) {
+          lead.textContent = 'If Messages did not open, use the button below.';
+          open.setAttribute('href', smsUri);
+          actions.hidden = false;
+          message.textContent = body;
+          preview.hidden = false;
+          if (to) {
+            recipient.textContent = to;
+            recipientRow.hidden = false;
+          }
+          copy.addEventListener('click', function () {
+            var label = 'Copy Message Text';
+            function succeed() {
+              status.textContent = 'Message text copied.';
+              copy.textContent = 'Copied';
+              window.clearTimeout(resetTimer);
+              resetTimer = window.setTimeout(function () {
+                copy.textContent = label;
+                if (status.textContent === 'Message text copied.') status.textContent = '';
+              }, 1600);
+            }
+            function fail() {
+              status.textContent = 'Could not copy automatically. Select the message text instead.';
+              copy.textContent = label;
+            }
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+              navigator.clipboard.writeText(body).then(succeed, fail);
+            } else {
+              fail();
+            }
+          });
+        } else {
+          lead.textContent = 'Add a message to this link and it will open in the Messages app.';
+          empty.hidden = false;
+        }
+
+        app.hidden = false;
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mount);
+      } else {
+        mount();
+      }
+
+      if (smsUri) {
+        try {
+          window.location.replace(smsUri);
+        } catch (err) {
+          window.location.href = smsUri;
+        }
+      }
+    })();
+  </script>
+</head>
+<body>
+  <main id="app" class="card" hidden>
+    <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
+      <rect width="48" height="48" rx="12" fill="#147a34"/>
+      <path fill="#ffffff" d="M13 15h22a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H22l-7 6v-6h-2a2 2 0 0 1-2-2V17a2 2 0 0 1 2-2z"/>
+    </svg>
+    <h1>Open in iMessage</h1>
+    <p id="lead" class="lead"></p>
+    <div id="actions" class="actions" hidden>
+      <a id="open" class="btn primary">Open in iMessage</a>
+      <button id="copy" class="btn secondary" type="button">Copy Message Text</button>
+    </div>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <section id="preview" class="preview" hidden aria-labelledby="message-label">
+      <h2 id="message-label" class="kicker">Message</h2>
+      <pre id="message" translate="no"></pre>
+      <p id="recipient-row" class="meta" hidden><span class="kicker">To </span><span id="recipient"></span></p>
+    </section>
+    <div id="empty" class="empty" hidden>
+      <p class="hint">Put the text in the link, then open it on an iPhone or Mac. <code>to</code> is optional.</p>
+      <ul class="examples">
+        <li><code>?body=Hello%20there</code></li>
+        <li><code>?to=+15551234567&amp;body=Hello%20there</code></li>
+        <li><code>#body=Hello%20there</code></li>
+      </ul>
+    </div>
+  </main>
+  <noscript>
+    <main class="card">
+      <h1>Open in iMessage</h1>
+      <p class="lead">JavaScript is required to read the message and open Messages.</p>
+    </main>
+  </noscript>
+</body>
+</html>
